@@ -25,7 +25,6 @@ HANDLE open_serial_port(const char * device, uint32_t baud_rate)
     CloseHandle(port);
     return INVALID_HANDLE_VALUE;
   }
- 
   // Configure read and write operations to time out after 100 ms.
   COMMTIMEOUTS timeouts = { 0 };
   timeouts.ReadIntervalTimeout = 0;
@@ -128,15 +127,8 @@ SSIZE_T read_port(HANDLE port, uint8_t * buffer, size_t size)
 
 int main()
 {
-  // Choose the serial port name.  If the Jrk is connected directly via USB,
-  // you can run "jrk2cmd --cmd-port" to get the right name to use here.
-  // COM ports higher than COM9 need the \\.\ prefix, which is written as
-  // "\\\\.\\" in C because we need to escape the backslashes.
   const char * device = "\\\\.\\COM6";
- 
-  // Choose the baud rate (bits per second).  This does not matter if you are
-  // connecting to the Jrk over USB.  If you are connecting via the TX and RX
-  // lines, this should match the baud rate in the Jrk's serial settings.
+  
   uint32_t baud_rate = 115200;
   // std::cout << "abc ";
   HANDLE port = open_serial_port(device, baud_rate);
