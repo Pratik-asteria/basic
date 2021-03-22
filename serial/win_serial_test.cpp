@@ -2,7 +2,11 @@
 #include <stdint.h>
 #include <windows.h>
 #include <iostream>
- 
+#include <vector>
+#include <iomanip>
+
+using namespace std; 
+
 HANDLE open_serial_port(const char * device, uint32_t baud_rate)
 {
   HANDLE port = CreateFileA(device, GENERIC_READ | GENERIC_WRITE, 0, NULL,
@@ -90,31 +94,78 @@ SSIZE_T read_port(HANDLE port, uint8_t * buffer, size_t size)
   return received;
 }
 
+// int get_angles(uint8_t * buffer){
+//   //Total bytes: 59, 
+//   //5+6 : ROLL_IMU_ANGLE (16 bits)
+//   //7+8 : ROLL_RC_ANGLE (16 bits)
+//   //9+10+11+12 : ROLL_STATOR_REL_ANGLE (32 bits) camera actual euler angle
+//   //
+//   //23+24 : PITCH_IMU_ANGLE (16 bits)
+//   //25+26 : PITCH_RC_TARGET_ANGLE (16 bits)
+//   //27+28+29+30 : PITCH_STATOR_REL_ANGLE (32 bits)
+//   //
+//   //41+42 : YAW_IMU_ANGLE (16 bits)
+//   //43+44 : YAW_RC_TARGET_ANGLE (16 bits)
+//   //45+46+47+48 : YAW_STATOR_REL_ANGLE (32 bits)
+  
+//   cout << *(buffer + 5);
+//   return 0;
+// }
+
+// int get_16bit_angle(){
+
+
+// }
+
+// int get_32bit_angle(){
+
+
+// }
+
+// int check_sum(){
+
+// }
+
 int main()
 {
   // Choose the serial port name.  If the Jrk is connected directly via USB,
   // you can run "jrk2cmd --cmd-port" to get the right name to use here.
   // COM ports higher than COM9 need the \\.\ prefix, which is written as
   // "\\\\.\\" in C because we need to escape the backslashes.
-  const char * device = "COM6";
+  const char * device = "\\\\.\\COM6";
  
   // Choose the baud rate (bits per second).  This does not matter if you are
   // connecting to the Jrk over USB.  If you are connecting via the TX and RX
   // lines, this should match the baud rate in the Jrk's serial settings.
   uint32_t baud_rate = 115200;
- 
+  // std::cout << "abc ";
   HANDLE port = open_serial_port(device, baud_rate);
-  if (port == INVALID_HANDLE_VALUE) { return 1; }
+  cout << "The port code: " << port << endl;
+  if (port == INVALID_HANDLE_VALUE) { 
+    cout << "invalid handle returned"; 
+    return 1; }
 
-  uint8_t smsg[] = {0x3e, 0x45, 0x01, 0x46, 0x12, 0x12};
+  uint8_t smsg[] = {0x3e, 0x3d, 0x00, 0x3d, 0x00}; //Return IMU angles
+  //uint8_t smsg[] = {0x3e, 0x45, 0x01, 0x46, 0x12, 0x12}; //return to head
+  //uint8_t smsg[] = {0xff, 0x01, 0x0f, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x16}; //turn to 40 degree pitch
+  
   write_port(port, smsg, sizeof(smsg));
-
-  uint8_t rmsg[20];
+  cout << "Number of bytes sent: " << sizeof(smsg) << endl;
+  cout << "Bytes written successfully! " << endl ;
+  
+  
+  uint8_t rmsg[59];
+  //vector<uint8_t> rmsg;
+  //vector<uint8_t> * p = &rmsg;
   int num = read_port(port, rmsg, sizeof(rmsg));
+  cout << num << endl;
+  // for(int i=0; i<num; i++){
+  //     std::cout << (int)rmsg[i];
+  //     //std::cout << std::hex << rmsg[i] << std::dec;
+  // }
 
-  for(int i=0; i<num; i++){
-      std::cout << rmsg[i];
-  }
+  //get_angles(rmsg);
+
   CloseHandle(port);
   return 0;
 }
